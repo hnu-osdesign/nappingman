@@ -58,7 +58,7 @@
 
 4. 上述变量（string等类）在进行赋值操作时，等式右边的变量所有权将被等式左边的新变量夺走，从而导致旧变量不再可用
 
-<img src="C:\Users\79146\AppData\Roaming\Typora\typora-user-images\image-20201114231034678.png" alt="image-20201114231034678" style="zoom:50%;" />
+<img src="C:\Users\79146\Desktop\Git Upload\images\image-20201114231034678.png" alt="image-20201114231034678" style="zoom:50%;" />
 
 5. 如果想要进行复制操作，不能单纯使用=赋值，which会连同所有权一并移交；需要使用.clone()方法，表现为==在堆中真实的复制一份数据==，所以复制之后的两个值都拥有自己的所有权；
 
@@ -66,13 +66,13 @@
 
 7. 变量的引用&类似于指针
 
-<img src="C:\Users\79146\AppData\Roaming\Typora\typora-user-images\image-20201114232226843.png" alt="image-20201114232226843" style="zoom: 67%;" />
+<img src="C:\Users\79146\Desktop\Git Upload\images\image-20201114232226843.png" alt="image-20201114232226843" style="zoom: 67%;" />
 
 
 
 ​		在内存中的表现是：在栈中存放s2变量的地方放一个指向（指向堆中存放s1地址的指针）；
 
-<img src="C:\Users\79146\AppData\Roaming\Typora\typora-user-images\image-20201114232335767.png" alt="image-20201114232335767" style="zoom: 50%;" />
+<img src="C:\Users\79146\Desktop\Git Upload\images\image-20201114232335767.png" alt="image-20201114232335767" style="zoom: 50%;" />
 
 8. 若引用的变量==在引用语句之后所有权被转移==，那么通过引用得到的变量会==失效==；
 
@@ -80,13 +80,13 @@
 
 10. “悬垂引用”——类似于没有实际指向一个能够访问数据的指针；在rust中还包括指向一个已经被释放的空间的（栈中的变量）；这种情况可能出现在将（一个以变量引用为返回值的函数返回值）赋值给（一个变量）——函数中的变量在函数调用结束后就被释放了，根据之前所知道的，当变量本身所有权失效之后，指向其的引用也自然失效，需要再次引用。
 
-<img src="C:\Users\79146\AppData\Roaming\Typora\typora-user-images\image-20201114234117386.png" alt="image-20201114234117386" style="zoom:67%;" />
+<img src="C:\Users\79146\Desktop\Git Upload\images\image-20201114234117386.png" alt="image-20201114234117386" style="zoom:67%;" />
 
 
 
 #### 组织管理
 
-<img src="C:\Users\79146\AppData\Roaming\Typora\typora-user-images\image-20201118121038735.png" alt="image-20201118121038735" style="zoom:67%;" />
+<img src="C:\Users\79146\Desktop\Git Upload\images\image-20201118121038735.png" alt="image-20201118121038735" style="zoom:67%;" />
 
 1. 首先，一个工程就是一个包package、包必须由一个 Cargo.toml 文件来管理，该文件描述了包的基本信息以及依赖项。
 
@@ -94,7 +94,7 @@
 
 3. 一个文件夹直接包含mod.rs ，如: `rust_mod_study/lip2/src/worker/mod.rs ;`则 worker就是模块名； 并且mod.rs为此模块的入口文件，此文件夹内的其他子模块都要在mod.rs中 `pub mod 模块名`，声明后，外部方可看到。
 
-<img src="C:\Users\79146\AppData\Roaming\Typora\typora-user-images\image-20201118121930219.png" alt="image-20201118121930219" style="zoom:50%;" />
+<img src="C:\Users\79146\Desktop\Git Upload\images\image-20201118121930219.png" alt="image-20201118121930219" style="zoom:50%;" />
 
 4. 通过use关键字使用模块，如果没有mod.rs文件，则在使用其他文件中的方法或子模块时，需要先把那个文件包成一个模块；其中关键字self表示在与本文件同级的目录中，super表示在父文件夹中
 
@@ -113,22 +113,22 @@ use self::_file_name::_child_module_name;
 
 3. Result<T,E>是一个带变量的枚举类，用来返回成功/错误信息的；
 
-<img src="C:\Users\79146\AppData\Roaming\Typora\typora-user-images\image-20201118102729688.png" alt="image-20201118102729688" style="zoom:67%;" />
+<img src="C:\Users\79146\Desktop\Git Upload\images\image-20201118102729688.png" alt="image-20201118102729688" style="zoom:67%;" />
 
 ​	使用示例：打开文件
 
-<img src="C:\Users\79146\AppData\Roaming\Typora\typora-user-images\image-20201118103307527.png" alt="image-20201118103307527" style="zoom:67%;" />
+<img src="C:\Users\79146\Desktop\Git Upload\images\image-20201118103307527.png" alt="image-20201118103307527" style="zoom:67%;" />
 
 ​	可以看到一般std库里面的函数返回值都是枚举变量Rusult，表示成功/失败；如果是成功的，就返回一个文件句柄，否则返	回一个错误类型的变量；
 
-![image-20201118103515389](C:\Users\79146\AppData\Roaming\Typora\typora-user-images\image-20201118103515389.png)
+![image-20201118103515389](C:\Users\79146\Desktop\Git Upload\images\image-20201118103515389.png)
 
 ​	除了用if let{}语句，还可以使用类似于C里面的switch的叫做match的语法，和switch的区别就是比switch更安全，不需要程	序员显示地在每一个语句之后添加break；
 
-<img src="C:\Users\79146\AppData\Roaming\Typora\typora-user-images\image-20201118111039609.png" alt="image-20201118111039609" style="zoom:67%;" />
+<img src="C:\Users\79146\Desktop\Git Upload\images\image-20201118111039609.png" alt="image-20201118111039609" style="zoom:67%;" />
 
 4. 如果想要把可恢复的错误当作不可恢复来处理，可以使用以下两种方式；其实就是当返回值为Result类的Err时，调用panic!，expect多了可以传递一条指定错误信息；
 
-![image-20201118111252552](C:\Users\79146\AppData\Roaming\Typora\typora-user-images\image-20201118111252552.png)
+![image-20201118111252552](C:\Users\79146\Desktop\Git Upload\images\image-20201118111252552.png)
 
 5. 当出现错误时，返回值枚举类的变量类型是Error类型的，我们可以通过方法kind()获得具体的错误信息
