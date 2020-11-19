@@ -28,13 +28,13 @@ ___
 
 ##### 相关链接：
 
-[Kendryte 官方的一款基于Visual Studio Code开发的IDE]: http://kendryte-ide.s3-website.cn-northwest-1.amazonaws.com.cn/
-[IDE的Hello World入门]: https://xiangbingj.github.io/2019/05/12/k210_env/
-[Linux下烧录工具Kflash]: https://github.com/sipeed/kflash_gui/releases
-[Linux下串口工具minicom安装]: https://cn.maixpy.sipeed.com/zh/get_started/serial_tools.html
-[Freertos开发书]: https://s3.cn-north-1.amazonaws.com.cn/dl.kendryte.com/documents/kendryte_freertos_programming_guide_20181012205800.pdf
+[]: http://kendryte-ide.s3-website.cn-northwest-1.amazonaws.com.cn/	"Kendryte 官方的一款基于Visual Studio Code开发的IDE"
+[]: https://xiangbingj.github.io/2019/05/12/k210_env/	"IDE的Hello World入门"
+[]: https://github.com/sipeed/kflash_gui/releases	"Linux下烧录工具Kflash"
+[]: https://cn.maixpy.sipeed.com/zh/get_started/serial_tools.html	"Linux下串口工具minicom安装"
+[]: https://s3.cn-north-1.amazonaws.com.cn/dl.kendryte.com/documents/kendryte_freertos_programming_guide_20181012205800.pdf	"Freertos开发书"
 
-[^Tips]:K210其他相关资料见pdf文件
+K210其他相关资料见docs文件夹
 
 ------
 
