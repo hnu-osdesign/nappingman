@@ -107,7 +107,6 @@ use self::_file_name::_child_module_name;
 ​		使用示例：打开文件	
 
 ![image](images/image-20201118103307527.png) 
-	
 
 ​	可以看到一般std库里面的函数返回值都是枚举变量Rusult，表示成功/失败；如果是成功的，就返回一个文件句柄，否则返	回一个错误类型的变量；
 
@@ -116,15 +115,15 @@ use self::_file_name::_child_module_name;
 
 ![image](images/image-20201118111039609.png) 
 
-
-
 4. 如果想要把可恢复的错误当作不可恢复来处理，可以使用以下两种方式；其实就是当返回值为Result类的Err时，调用panic!，expect多了可以传递一条指定错误信息；
 
 ![image](images/image-20201118111252552.png) 
 
-
-
 5. 当出现错误时，返回值枚举类的变量类型是Error类型的，我们可以通过方法kind()获得具体的错误信息
+
+
+
+
 
 
 
@@ -140,31 +139,33 @@ use self::_file_name::_child_module_name;
 
 #### 结构体
 
-1. 结构体定义：使用"变量:类型"键值对的方式声明成员变量，在初始化时亦可以通过这样实现；
+###### ①结构体定义：
 
-   ```rust
-   //声明结构体
-   struct Site {
-       domain: String,
-       name: String,
-       nation: String,
-       found: u32
-   }
-   ```
+​	使用"变量:类型"键值对的方式声明成员变量，在初始化时亦可以通过这样实现；
 
-   ```rust
-   //声明实例
-   let runoob = Site {
-       domain: String::from("www.runoob.com"),
-       name: String::from("RUNOOB"),
-       nation: String::from("China"),
-       found: 2013
-   };
-   ```
+```rust
+//声明结构体
+struct Site {
+    domain: String,
+    name: String,
+    nation: String,
+    found: u32
+}
+```
 
-   
+```rust
+//声明实例
+let runoob = Site {
+    domain: String::from("www.runoob.com"),
+    name: String::from("RUNOOB"),
+    nation: String::from("China"),
+    found: 2013
+};
+```
 
-2. 当一个结构体中含有很多成员变量，而你只想创建一个与==已有的结构体实例只有些许差距的另一个实例==，那么可以使用==..runoob==更新语法，加在新实例声明语句之后；需要注意的是，使用该语法时，所声明的新实例必须要与参照实例==有至少一处以上的不同==！另外，在声明式，各成员变量的声明顺序可以与定义时的顺序不一致。
+
+
+1. 当一个结构体中含有很多成员变量，而你只想创建一个与==已有的结构体实例只有些许差距的另一个实例==，那么可以使用==..runoob==更新语法，加在新实例声明语句之后；需要注意的是，使用该语法时，所声明的新实例必须要与参照实例==有至少一处以上的不同==！另外，在声明式，各成员变量的声明顺序可以与定义时的顺序不一致。
 
 ```rust
 let site = Site {
@@ -174,7 +175,7 @@ let site = Site {
 };
 ```
 
-3. **结构体方法与函数**
+3. **结构体方法与函数：	**
 
    **①方法**
 
@@ -221,7 +222,7 @@ fn main() {
 }
 ```
 
-###### 	②结构体关联函数
+###### 	②结构体关联函数：
 
 ​	函数与上面方法的区别是：方法依附于一个具体的实例，因为参数里必须要有&self；而函数可以不需要有&self参数，只需	要知道这个函数是在哪个impl块中声明的即可，调用时通过"块名::函数名"即可；
 
@@ -246,7 +247,7 @@ fn main() {
 }
 ```
 
-	###### ③输出结构体（调试使用）
+###### ③输出结构体（调试使用）
 
 ```rust
 #[derive(Debug)]
@@ -264,7 +265,7 @@ fn main() {
 }
 ```
 
-###### ④元组结构体
+###### ④元组结构体：
 
 对于一些频繁使用的简单结构体，可以通过简单的语句声明：
 
@@ -280,6 +281,10 @@ fn main() {
     println!("origin = ({}, {})", origin.0, origin.1);
 }
 ```
+
+#### 泛型
+
+###### （大多可类比C++，暂时跳过）
 
 #### 特性（trait）
 
@@ -478,6 +483,92 @@ fn returns_summarizable(switch: bool) -> impl Summary {
 
 ​	以之前的例子来讲，我们声明的Summary特性，和我们声明的结构体NewsArticle、Tweet都是在同一个文件里（也就是同一	个module中），所以我们能够直接为NewsArticle、Tweet实现特性Summary中的方法；
 
-​	但是当特性的声明和结构体不在同一个module中，比如，module_A中的结构体想为它的实例实现在module_B声明的一个名	为Method的特性，那么首先需要把这个特性通过use关键字"use::module_B::Method"，使得改特性在module_A中可用，然后再完成相关实现；
+​	但是当特性的声明和结构体不在同一个module中，比如，module_A中的结构体想为它的实例实现在module_B声明的一个名	为Method的特性，那么首先需要把这个特性通过use关键字"use::module_B::Method"，使得改特性在module_A中可用，然后	再完成相关实现；
 
 ​	这个限制是被称为 **相干性**（*coherence*） 的程序属性的一部分，或者更具体的说是 **孤儿规则**（*orphan rule*），其得名于不存	在父类型。这条规则确保了其他人编写的代码不会破坏你代码，反之亦然。没有这条规则的话，两个 crate 可以分别对相同	类型实现相同的 trait，而 Rust 将无从得知应该使用哪一个实现。
+
+###### ⑦实现一个寻找最大值的泛型函数
+
+​	将不同类型下的寻找最大值函数抽象出来，可以写出下面伪代码：
+
+```rust
+fn find_max<T> (array:&[T]) -> T{
+    let mut max_element = array[0];
+    if item>max_element{
+        max_element = item;
+     //比较，更新最大值   
+    }
+    return max_element;
+}
+```
+
+​	但是即使完善了内部代码，编译还是会报错，这是因为我们在比较的过程中所用到的">"符号，并没有对泛型T中的所有类	型都实现了（比如，你随便定义了一个结构体，当然不能之间用">"来进行实例之间的比较，C++中需要重载运算符）；所	以，这里有两种不同的方案：
+
+​	Ⅰ. 让find_max()函数只对实现了">"比较方法的类型适用，这样的话我们可以通过如下声明，限	制泛型T只能是已经实现       	了">"的类型：
+
+```rust
+fn find_max<T:Partial0rd>(array:&[T]){
+    ...
+}
+```
+
+​	但是这样依旧报错，问题出在赋值语句上
+
+```rust
+let mut max_element = array[0];
+```
+
+​	我们之前学所有权的时候已经知道，rust中，不同类型的变量储存的位置是不一样的；对于长度确定的一些基础类型，它们存放在栈中，而对于像字符串这类"变长"类型，数据是存放在堆里面的；这里的赋值语句相当于拷贝一份array[0]的值给max_element；问题就在于，我们不知道array[0]存在哪里，他可能是在栈里、也可能在堆里；对于 `i32` 和 `char` 这样的类型是已知大小的并可以储存在栈上，所以他们实现了 `Copy` trait，也就是能够直接赋值过去；当我们将 find_max函数改成使用泛型后，现在 array 参数的类型就有可能是没有实现 `Copy` trait 的。这意味着我们可能不能将 array[0]的值移动到 max_element变量中，这导致了上面的错误。
+
+​	为了只对实现了 `Copy` 的类型调用这些代码，可以在 `T` 的 trait bounds 中增加 `Copy`！示例 10-15 中展示了一个可以编译的泛型版本的find_max 函数的完整代码，只要传递给 max_element的 slice 值的类型实现了 `PartialOrd` **和** `Copy` 这两个 trait，例如 `i32` 和 `char`：
+
+```rust
+//一个可以用于任何实现了 PartialOrd 和 Copy trait 的泛型的 find_max 函数
+fn find_max<T: PartialOrd + Copy>(array: &[T]) -> T {
+    let mut max_element = array[0];
+
+    for &item in array.iter() {
+        if item > max_element {
+            max_element = item;
+        }
+    }
+
+    max_element
+}
+```
+
+​	Ⅱ.定义一种新的特性，相当于是C++中自定义结构体排序方式，只不过在Rust里我们把对于不同类型的比较方式都抽象到一个trait中；
+
+```rust
+//定义比较特性
+trait Comparable {
+    fn compare(&self, object: &Self) -> i8;
+}
+//为不同类型的数据实现具体比较方式
+//这里是64位float
+impl Comparable for f64 {
+    fn compare(&self, object: &f64) -> i8 {
+        if &self > &object { 1 }
+        else if &self == &object { 0 }
+        else { -1 }
+    }
+}
+//一个适用于所有实现了Compareable特性类型寻找最值函数
+fn max<T: Comparable>(array: &[T]) -> &T {
+    let mut max_index = 0;
+    let mut i = 1;
+    while i < array.len() {
+        if array[i].compare(&array[max_index]) > 0 {
+            max_index = i;
+        }
+        i += 1;
+    }
+    &array[max_index]
+}
+
+fn main() {
+    let arr = [1.0, 3.0, 5.0, 4.0, 2.0];
+    println!("maximum of arr is {}", max(&arr));
+}
+```
+
