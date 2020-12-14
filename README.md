@@ -132,7 +132,7 @@ use self::_file_name::_child_module_name;
 ```c
 /*------------------------------------------------------------
 --------------------3rd meeting's record----------------------
----------Theme:Rust语言的结构体、trait  ---------
+----------------Theme:Rust语言的结构体、trait------------------
 -------------------@nappingman On 2020.11.------------------
 ------------------------------------------------------------*/
 ```
@@ -175,7 +175,7 @@ let site = Site {
 };
 ```
 
-3. **结构体方法与函数：	**
+3. **结构体方法与函数：**	
 
    **①方法**
 
@@ -419,7 +419,7 @@ pub fn notify(item: impl Summary + Display) {
 //1.只有一个trait参数
 pub fn notify<T: Summary>(item: T) {
     println!("Breaking news! {}", item.summarize());
-}
+}	
 //2.多个trait参数（此时两个实例必须是同一种实现了Summary的类型！）
 pub fn notify<T: Summary>(item1: T, item2: T) {
 ...
@@ -571,4 +571,175 @@ fn main() {
     println!("maximum of arr is {}", max(&arr));
 }
 ```
+
+---
+
+```c
+/*------------------------------------------------------------
+--------------------6th meeting's record----------------------
+---------------------Theme:Rust语言的闭包----------------------
+-------------------@nappingman On 2020.12.14------------------
+------------------------------------------------------------*/
+```
+
+#### 闭包
+
+##### 理解闭包
+
+先上一张图，理解之后觉得很形象：
+
+![img](https://static001.geekbang.org/infoq/b5/b5d5b71e8b41eec3249e9515b26df9e2.jpeg?x-oss-process=image/resize,p_80/auto-orient,1)
+
+为什么把闭包比喻成虫洞呢？
+
+先看这个例子：
+
+```rust
+fn display<T>(age: u32, print_info: T)
+    where T: Fn(u32)//约束闭包捕获的上下文是“不可变的”，类比实现结构体方法时提到的&self
+{
+    print_info(age);
+}
+
+fn main() {
+    let name = String::from("Ethan");
+
+    let print_info_closure = |age|{
+        //捕获上文中的name变量
+        println!("name is {}", name);
+        println!("age is {}", age);
+    };
+
+    let age = 18;
+    display(age, print_info_closure);
+}
+```
+
+输出：
+
+```
+name is Ethan
+
+age is 18
+```
+
+首先，闭包作为匿名函数存在了`print_info_closure`栈变量中，然后传递给了函数`display`作为参数，在`display`内部调用了闭包，并传递了参数`age`。最后神奇的事情出现了：在函数`display`中调用的闭包居然打印出了函数`main`作用域中的变量`name`。
+
+**闭包的精髓，就在于它同时涉及两个作用域**，就仿佛打开了一个"虫洞"，让不同作用域的变量穿梭其中。
+
+```rust
+let x_closure = ||{};
+```
+
+单独一行代码，就藏着这个奥妙：
+
+- 赋值`=`的左侧，是存储闭包的变量，它处在一个作用域中，也就是我们说的闭包**定义处**的环境上下文；
+- 赋值`=`的右侧，那对花括号`{}`里，也是一个作用域，它在闭包**被调用处**动态产生；
+
+无论左侧右侧，都定义了闭包的属性，天然的联通了两个作用域。
+
+
+
+可能通过上面的例子，还不能很直观的了解啥是闭包，以我的理解：闭包可以当作函数，| |中为形参，{ }中为函数体，和普通函数的区别就是，这个函数没有名字；然而它又可以有名字，就是它把自己赋给一个变量，那么这个变量名便可以当作它的函数名，可直接通过`variable_name()`调用。
+
+下面我们深入学习一下......
+
+##### 闭包捕获上下文的不同类型
+
+上面的例子中，提到了闭包捕获的是一个“不可变上下文”的环境，用泛型`Fn(u32)`还指明了其具体数据类型；
+
+那么除了Fn，一共还有以下不同的方式/限制，类比实现结构体方法时提到的&self，&mut self，self，以及不带self的；
+
+- 没有上下文的闭包就是一个函数指针。
+
+- 带有不可变上下文（immutable context）的闭包属于`Fn`
+
+- 带有可变上下文（mutable context）的闭包属于`FnMut`
+
+- 拥有其上下文的闭包属于`FnOnce`
+
+  ![img](https://tonydeng.github.io/images/blog/rust/rust-closure.jpg)
+
+  来理解一下这四种闭包类型:
+
+  ​	①fn			 ：闭包中没有使用上下文中的东西，也就是独立于外部环境的；
+
+  ​	②Fn			：闭包中如果用到了上下文中的变量，只能是普通引用；
+
+  ​	③FnMut	 ：闭包中如果用到了上下文中的变量，是可变引用；
+
+  ​	④FnOnce    ：闭包中如果用到了上下文中的变量，直接把所有权给转移过来了；
+
+如果一个闭包只是在声明它的函数范围内使用，只需要遵守借用规则即可；
+
+由于没有将上下文传递，所以可以当作普通函数来使用；
+
+只有在闭包被当作参数传递时，才需要指明闭包的类型，当然，由上图中的几种类型的包含图，只需要满足指定类型包含/等于实际类型即可；
+
+注意一下，我们在声明一个闭包的时候，并不会用到这些泛型限制，我们只需要指定：
+
+​	①接收变量的类型（如果闭包内部对上下文中的变量进行修改，须指明成mut）
+
+​	②| |中的形参（如果闭包内部对该形参进行了修改，须指明成mut）
+
+​	③闭包可以没有返回值
+
+##### 闭包作为函数参数
+
+```rust
+fn display1 <F>(print:F)
+    where F:Fn()//相当于&self，不可变
+    {
+        print();//调用闭包
+    }
+
+fn display2 <F>(mut print:F)
+    where F:FnMut()//相当于&mut self
+    {
+        print();
+        // 尝试多调用几次printf看看
+        // print();
+    }
+
+fn display3 <F>(print:F)
+    where F:FnOnce()//每次都会“消耗捕获的变量”
+    // 加copy特性，约束成普通类型，则调用不受限制
+    // where F:FnOnce() + Copy
+    {
+        print();
+        // 尝试多调用几次printf看看
+        // print();
+    }
+fn main(){
+
+    let age1=10;
+    let mut age2=10;
+    let age3=10;
+
+    let closure1=||{
+        println!("Age1 is {}",age1);
+    };
+    let closure2=||{
+        age2=age2+3;
+        println!("Age2 is modifiede to {}",age2);
+    };
+    let closure3=||{
+        println!("Age3 is {} and taken by this closure",age3);
+    };
+    // 调用display系列函数
+    display1(closure1);
+    display2(closure2);
+    // closure2();
+    // display2(closure2);
+    display3(closure3);
+    // 只能调用一次display3(closure3) or closure3()
+    // display3(closure3);
+}
+```
+
+
+
+##### 闭包作为函数返回值
+
+
 
