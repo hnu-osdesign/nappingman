@@ -588,7 +588,7 @@ fn main() {
 
 先上一张图，理解之后觉得很形象：
 
-![img](https://static001.geekbang.org/infoq/b5/b5d5b71e8b41eec3249e9515b26df9e2.jpeg?x-oss-process=image/resize,p_80/auto-orient,1)
+![img](images\auto-orient,1)
 
 为什么把闭包比喻成虫洞呢？
 
@@ -658,7 +658,7 @@ let x_closure = ||{};
 
 - 拥有其上下文的闭包属于`FnOnce`
 
-  ![img](https://tonydeng.github.io/images/blog/rust/rust-closure.jpg)
+  ![img](images\rust-closure.jpg)
 
   来理解一下这四种闭包类型:
 
