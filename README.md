@@ -588,7 +588,7 @@ fn main() {
 
 先上一张图，理解之后觉得很形象：
 
-![img](images\auto-orient,1)
+![image](images/auto-orient,1)
 
 为什么把闭包比喻成虫洞呢？
 
@@ -658,7 +658,7 @@ let x_closure = ||{};
 
 - 拥有其上下文的闭包属于`FnOnce`
 
-  ![img](images\rust-closure.jpg)
+  ![image](images/rust-closure.jpg)
 
   来理解一下这四种闭包类型:
 
@@ -684,7 +684,7 @@ let x_closure = ||{};
 
 ==但是，在编译的时候，编译器会推断你的闭包属于这四种类型中的哪一个；比如你的闭包中最后一条语句是一个返回语句，把捕获的环境变量返回了，那么编译器便会infer，你这个闭包每次调用都会消耗环境变量，所以只能调用一次，为`FnOnce`，所以你在把这个闭包传入一个函数时，接受闭包的函数的boundary必须要设定成`FnOnce`，否则可以看到下面这个报错：==
 
-![image-20201215101147021](images\image-20201215101147021.png)
+![image](images/image-20201215101147021.png)
 
 
 
