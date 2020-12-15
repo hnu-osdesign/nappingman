@@ -662,13 +662,11 @@ let x_closure = ||{};
 
   来理解一下这四种闭包类型:
 
-  ​	①fn			 ：闭包中没有使用上下文中的东西，也就是独立于外部环境的；
+  ​	①fn/Fn  	 ：要么闭包没有捕获变量、要么捕获的都是基本类型（实现了Copy，存在栈中）
 
-  ​	②Fn			：闭包中如果用到了上下文中的变量，只能是普通引用；
+  ​	②FnMut	 ：
 
-  ​	③FnMut	 ：闭包中如果用到了上下文中的变量，是可变引用；
-
-  ​	④FnOnce    ：闭包中如果用到了上下文中的变量，直接把所有权给转移过来了；
+  ​	③FnOnce   ：
 
 如果一个闭包只是在声明它的函数范围内使用，只需要遵守借用规则即可；
 
@@ -684,62 +682,157 @@ let x_closure = ||{};
 
 ​	③闭包可以没有返回值
 
-##### 闭包作为函数参数
+==但是，在编译的时候，编译器会推断你的闭包属于这四种类型中的哪一个；比如你的闭包中最后一条语句是一个返回语句，把捕获的环境变量返回了，那么编译器便会infer，你这个闭包每次调用都会消耗环境变量，所以只能调用一次，为`FnOnce`，所以你在把这个闭包传入一个函数时，接受闭包的函数的boundary必须要设定成`FnOnce`，否则可以看到下面这个报错：==
+
+![image-20201215101147021](images\image-20201215101147021.png)
+
+
+
+##### 闭包作为函数使用
+
+前面已经说了，作函数用时，函数名就是变量名；
+
+参数类型以及返回值类型呢？
+
+没有显示编程指定，这项工作交给编译器来做。当闭包第一次被调用时，传入参数类型以及返回值类型即为这个闭包的签名，之后的调用必须与第一次的类型相符；
+
+##### 闭包生命周期
+
+而相对而言，closure更像是一个可以被“调用”的变量。它具有和变量同样的“生命周期”。
+
+###### 闭包底层实现原理
+
+实际上，闭包可以通过一个结构体来模拟，解答以下两个问题，便能完全理解闭包原理：
+
+1. 结构体内部的成员，应该用什么类型，如何初始化？应该用i32或是&i32还是&mut i32？
+2. call函数调用的时候self应该用什么类型？应该写self或是&self还是&mut self？
+
+[1]: https://zhuanlan.zhihu.com/p/23710601	"参考这篇文章吧，写的很好"
+
+
+
+对于一个闭包，其捕获的变量、传入的参数都作为结构体的成员变量；
+
+​	闭包内的逻辑语句，即为该结构体的impl方法块中的一个具体实现；
+
+​	这个实现又分为不同种类，编译器通过对具体行为的推断，得出一个参数类型（不带self，&self，&mut self，self）；
+
+​	
+
+##### （理解上面的声明周期再来看这个）闭包作为函数参数
+
+作为参数传入呢，就需要设计一个接收的函数了，之前提到的三个类型：`Fn,FnMut,FnOnce`就是用来描述这里的；
+
+这三个类型具有包含关系：`FnOnce>FnMut>Fn`（之前看到一张图，居然把FnOnce画在最里面，误人子弟......）
+
+所以使用后两者的地方换成`FnOnce`都是可以的；
+
+这里有个点要理解：
+
+接收FnOnce类型闭包的函数和闭包本身，都只能调用一次；
+
+​		为什么——闭包本身以`self`方式传入结构体方法，方法调用结束后闭包自身的生命周期就结束了；	
+
+而`Fn/FnMut`是被认定可以多次运行的，如果交还了捕获变量的所有权，则下次就不能运行了，所以会报出前面那个错误
 
 ```rust
-fn display1 <F>(print:F)
-    where F:Fn()//相当于&self，不可变
+fn display1 <F>(print:&F)//相当于&self，不可变
+    where F:FnOnce()
     {
-        print();//调用闭包
+        print;//调用闭包
     }
 
-fn display2 <F>(mut print:F)
-    where F:FnMut()//相当于&mut self
+fn display2 <F>(mut print:&F)
+    where F:FnMut()
     {
-        print();
-        // 尝试多调用几次printf看看
+        print;
+        println!("can be called multiple times ");
         // print();
     }
 
 fn display3 <F>(print:F)
-    where F:FnOnce()//每次都会“消耗捕获的变量”
+    // 增加closure3的返回类型
+    where F:FnOnce()->Vec<u32>
     // 加copy特性，约束成普通类型，则调用不受限制
     // where F:FnOnce() + Copy
     {
         print();
-        // 尝试多调用几次printf看看
-        // print();
+        println!("can't be called multiple times, 'cause the captured variable is already consumed ");
+            // print();
     }
 fn main(){
 
     let age1=10;
-    let mut age2=10;
-    let age3=10;
+    let mut age2:Vec<i32>=vec![10];
+    let age3:Vec<u32>=vec![10];
 
     let closure1=||{
         println!("Age1 is {}",age1);
     };
-    let closure2=||{
-        age2=age2+3;
-        println!("Age2 is modifiede to {}",age2);
+    let mut closure2=||{
+        age2[0]=age2[0]+3;
+        println!("Age2 is modifiede to {}",age2[0]);
     };
     let closure3=||{
-        println!("Age3 is {} and taken by this closure",age3);
+        println!("Age3 is {} and taken by this closure",age3[0]);
+        age3
     };
     // 调用display系列函数
-    display1(closure1);
-    display2(closure2);
+    display1(&closure1);
+    // closure1();
+    // println!("display1 and closure1 can be called multiple times in main ");
+    
+     closure2();
     // closure2();
-    // display2(closure2);
+    display2(&closure2);
+    display2(&closure2);
+    println!("the variable 'age2: {}' captured by closure2 is still available in main ",age2[0]);
+    
     display3(closure3);
-    // 只能调用一次display3(closure3) or closure3()
+    // println!("the variable 'age3' captured by closure2 is no longer available in main ");
+    // println!("same as the closure3 itself in main ");
     // display3(closure3);
+    // println!("{}",age3[0]);
 }
 ```
 
-
-
 ##### 闭包作为函数返回值
 
+当要返回一个闭包时，也就相当于返回一个匿名结构体，这个结构体的大小取决于闭包的参数、捕获的变量，所以是不确定的，不能直接return，需要用到`Box::new`装箱：
 
+```rust
 
+fn closure_inside() -> Box<dyn FnMut() -> ()>
+{
+    let mut age = 1;
+    let mut name = String::from("Ethan");
+
+    let age_closure = move || {
+        name.push_str(" Yuan");
+        age += 1;
+        println!("name is {}", name);
+        println!("age is {}", age);
+    };
+
+    Box::new(age_closure)
+}
+
+fn main(){
+    let mut age_closure = closure_inside();
+    age_closure();
+    age_closure();
+}
+```
+
+​	上面的代码，除了让函数成功返回闭包之外，还有一个目的，我们想让闭包捕获函数内部环境中的值，但这次有些不同：
+
+- 第1节代码示例，我们把外层的环境上下文，通过将闭包传入内层函数，这个不难理解，因为外层变量的生命周期更长，内层函数访问时，外层变量还活着；
+- 而本节代码所做的，是通过闭包将内层函数的环境变量传出来给外层环境；
+
+内层函数调用完成后就会销毁内层环境变量，那如何做到呢？幸好，Rust有**所有权转移**。只要能促成内层函数的环境变量向闭包进行所有权的转移，这个操作顺理成章。
+
+正因为Rust具有所有权转移的概念，返回闭包（同时捕获环境变量）的机理，Rust的要比任何具有垃圾回收语言（JavaScript、Java、C#）的解释都更简单明了。后者总会给人一丝不安：内部函数调用都结束了，居然局部变量还活着。
+
+代码中的所有权转移，这里使用了关键字`move`，它可以在构建闭包时，强制以`by value`的方式，也就是把所有权都转移到闭包中。它可以在构建闭包时，强制将要捕获变量的所有权转移至闭包内部的特别存储区
+
+需要注意的是，使用`move`，并不影响闭包的`trait`，本例中可以看到闭包是`FnMut`，而不是`FnOnce`。因为必报的`trait`是由编译器通过闭包具体的行为而推断的，而与它以何种方式捕获变量无关。
