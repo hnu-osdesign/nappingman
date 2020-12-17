@@ -38,4 +38,4 @@
 
 对于最终的`rcore`，`linker.ld`和`entry.asm`没有变化，变化的是`rust_main`
 
-<img src="C:\Users\79146\Desktop\Git Upload\images\image-20201217212432620.png" alt="image-20201217212432620"  />
+<img src="images/image-20201217212432620.png" alt="image-20201217212432620"  />
