@@ -48,7 +48,7 @@ K210其他相关资料见docs文件夹
 
 	通过三条规则引入所有权：
 
-	![image](images/image-20201114231034678.png)
+	<img src="images/image-20201114231034678.png" alt="image" style="zoom: 67%;" />
 2. 一般变量的作用范围就是所声明函数的范围，一旦超出，所有权将被收回；
 
 3. 对于基本类型的变量，变量的数据内容存在于栈中，而对于其他类型的（比如不定长的string），其实际数据内容存在于堆中，在栈里面只存储了一个指向堆的指针；
@@ -61,30 +61,32 @@ K210其他相关资料见docs文件夹
 
 7. 变量的引用&类似于指针
 
-	![image](images/image-20201114232226843.png) 
+	<img src="images/image-20201114232226843.png" alt="image" style="zoom: 67%;" /> 
 
 	在内存中的表现是：在栈中存放s2变量的地方放一个指向（指向堆中存放s1地址的指针）； 
 
-	![image](images/image-20201114232335767.png) 
+	<img src="images/image-20201114232335767.png" alt="image" style="zoom: 50%;" /> 
 8. 若引用的变量==在引用语句之后所有权被转移==，那么通过引用得到的变量会==失效==；
 
 9. 既然引用相当于一种“租借”来的所有权，那么试图对其数据进行修改的语句都是非法的；除非使用一种特殊的==引用类型——&mut==，使用&mut修饰表明可变的引用类型；这同时引出了另一个问题：在普通引用的时候，一个变量可以有多个引用；但对于可变引用，只能有一个，不允许有多个可变引用指向一个变量；即多个可变引用涉及到了同步问题，在rust中成为“数据访问碰撞”；
 
 10. “悬垂引用”——类似于没有实际指向一个能够访问数据的指针；在rust中还包括指向一个已经被释放的空间的（栈中的变量）；这种情况可能出现在将（一个以变量引用为返回值的函数返回值）赋值给（一个变量）——函数中的变量在函数调用结束后就被释放了，根据之前所知道的，当变量本身所有权失效之后，指向其的引用也自然失效，需要再次引用。
 
-![image](images/image-20201114234117386.png)
+<img src="images/image-20201114234117386.png" alt="image" style="zoom:67%;" />
 
 
 #### 组织管理
 
-![image](images/image-20201118121038735.png) 
+<img src="images/image-20201118121038735.png" alt="image" style="zoom:50%;" /> 
+
 1. 首先，一个工程就是一个包package、包必须由一个 Cargo.toml 文件来管理，该文件描述了包的基本信息以及依赖项。
 
 2. 独立的一个文件就是一个mod,文件名就是mod名；
 
 3. 一个文件夹直接包含mod.rs ，如: `rust_mod_study/lip2/src/worker/mod.rs ;`则 worker就是模块名； 并且mod.rs为此模块的入口文件，此文件夹内的其他子模块都要在mod.rs中 `pub mod 模块名`，声明后，外部方可看到。
 
-![image](images/image-20201118121930219.png) 
+<img src="images/image-20201118121930219.png" alt="image" style="zoom:50%;" /> 
+
 4. 通过use关键字使用模块，如果没有mod.rs文件，则在使用其他文件中的方法或子模块时，需要先把那个文件包成一个模块；其中关键字self表示在与本文件同级的目录中，super表示在父文件夹中
 
 ```rust
@@ -102,22 +104,22 @@ use self::_file_name::_child_module_name;
 
 3. Result<T,E>是一个带变量的枚举类，用来返回成功/错误信息的；
 
-![image](images/image-20201118102729688.png) 
+<img src="images/image-20201118102729688.png" alt="image" style="zoom:50%;" /> 
 
 ​		使用示例：打开文件	
 
-![image](images/image-20201118103307527.png) 
+<img src="images/image-20201118103307527.png" alt="image" style="zoom:50%;" /> 
 
 ​	可以看到一般std库里面的函数返回值都是枚举变量Rusult，表示成功/失败；如果是成功的，就返回一个文件句柄，否则返	回一个错误类型的变量；
 
-![image](images/image-20201118103515389.png) 
+<img src="images/image-20201118103515389.png" alt="image" style="zoom:50%;" /> 
 	除了用if let{}语句，还可以使用类似于C里面的switch的叫做match的语法，和switch的区别就是比switch更安全，不需要程	序员显示地在每一个语句之后添加break；
 
-![image](images/image-20201118111039609.png) 
+<img src="images/image-20201118111039609.png" alt="image" style="zoom:50%;" /> 
 
 4. 如果想要把可恢复的错误当作不可恢复来处理，可以使用以下两种方式；其实就是当返回值为Result类的Err时，调用panic!，expect多了可以传递一条指定错误信息；
 
-![image](images/image-20201118111252552.png) 
+<img src="images/image-20201118111252552.png" alt="image" style="zoom:67%;" /> 
 
 5. 当出现错误时，返回值枚举类的变量类型是Error类型的，我们可以通过方法kind()获得具体的错误信息
 
@@ -588,7 +590,7 @@ fn main() {
 
 先上一张图，理解之后觉得很形象：
 
-![image](images/auto-orient,1)
+<img src="images/auto-orient,1" alt="image"  />
 
 为什么把闭包比喻成虫洞呢？
 
@@ -658,7 +660,7 @@ let x_closure = ||{};
 
 - 拥有其上下文的闭包属于`FnOnce`
 
-  ![image](images/rust-closure.jpg)
+  <img src="images/rust-closure.jpg" alt="image" style="zoom: 67%;" />
 
   来理解一下这四种闭包类型:
 
@@ -684,7 +686,7 @@ let x_closure = ||{};
 
 ==但是，在编译的时候，编译器会推断你的闭包属于这四种类型中的哪一个；比如你的闭包中最后一条语句是一个返回语句，把捕获的环境变量返回了，那么编译器便会infer，你这个闭包每次调用都会消耗环境变量，所以只能调用一次，为`FnOnce`，所以你在把这个闭包传入一个函数时，接受闭包的函数的boundary必须要设定成`FnOnce`，否则可以看到下面这个报错：==
 
-![image](images/image-20201215101147021.png)
+<img src="images/image-20201215101147021.png" alt="image" style="zoom:67%;" />
 
 
 
