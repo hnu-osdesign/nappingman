@@ -2,7 +2,7 @@
 
 ##### 纸娃娃
 
-<img src="C:\Users\79146\Application Data\Typora\typora-user-images\image-20201217204055488.png" alt="image-20201217204055488" style="zoom:80%;" />
+<img src="images/image-20201217225204835.png" alt="image-20201217225204835" style="zoom:80%;" />
 
 （编程操作的全部为==内存地址==，分为`16-Bits`和`32-Bits`两种）
 
@@ -23,7 +23,7 @@
 
 ##### `rcore`
 
-<img src="C:\Users\79146\Application Data\Typora\typora-user-images\image-20201217211035907.png" alt="image-20201217211035907" style="zoom:80%;" />
+<img src="images/image-20201217211035907.png" alt="image-20201217211035907" style="zoom:80%;" />
 
 
 
