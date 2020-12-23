@@ -382,9 +382,41 @@ OpenSBI 实际上不仅起到了 bootloader 的作用，还为我们提供了一
 
 我们查看 [OpenSBI 文档 # legacy sbi extension](https://github.com/riscv/riscv-sbi-doc/blob/master/riscv-sbi.adoc#legacy-sbi-extension-extension-ids-0x00-through-0x0f) ，里面包含了一些以 C 函数格式给出的我们可以调用的接口。
 
+
+
 上一节中我们的 `console_putchar` 函数类似于调用下面的接口来实现的：
 
 ```c
 void sbi_console_putchar(int ch)
+```
+
+而实际的过程是这样的：运行在 S 态的 OS 通过 ecall 发起 SBI 调用请求，RISC-V CPU 会从 S 态跳转到 M 态的 OpenSBI 固件，OpenSBI 会检查 OS 发起的 SBI 调用的编号，如果编号在 0-8 之间，则进行处理，否则交由我们自己的中断处理程序处理（暂未实现）。
+
+执行 `ecall` 前需要指定 SBI 调用的编号，传递参数。一般而言，`a7(x17)` 为 SBI 调用编号，`a0(x10)`、`a1(x11)` 和 `a2(x12)` 寄存器为 SBI 调用参数：
+
+> 编号在 `0-8` 之间的系统调用：
+>
+> <img src="images/image-20201223105900393.png" alt="image-20201223105900393" style="zoom:50%;" />
+
+执行 ecall 前需要指定系统调用的编号，传递参数。一般而言，a_7*a*7 为系统调用编号，a_0 , a_1 , a_2*a*0,*a*1,*a*2 为参数：
+
+```rust
+// src/sbi.rs
+
+//! Port from sbi.h
+#![allow(dead_code)]
+
+#[inline(always)]
+fn sbi_call(which: usize, arg0: usize, arg1: usize, arg2: usize) -> usize {
+    let ret;
+    unsafe {
+        asm!("ecall"
+            : "={x10}" (ret)
+            : "{x10}" (arg0), "{x11}" (arg1), "{x12}" (arg2), "{x17}" (which)
+            : "memory"
+            : "volatile");
+    }
+    ret
+}
 ```
 
