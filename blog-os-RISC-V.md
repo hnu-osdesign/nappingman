@@ -398,7 +398,7 @@ void sbi_console_putchar(int ch)
 >
 > <img src="images/image-20201223105900393.png" alt="image-20201223105900393" style="zoom:50%;" />
 
-执行 ecall 前需要指定系统调用的编号，传递参数。一般而言，a_7*a*7 为系统调用编号，a_0 , a_1 , a_2*a*0,*a*1,*a*2 为参数：
+执行 ecall 前需要指定系统调用的编号，传递参数。一般而言，$a_7$ 为系统调用编号，$a_0$，$a_1$，$a_2$ 为参数：
 
 ```rust
 // src/sbi.rs
@@ -410,13 +410,49 @@ void sbi_console_putchar(int ch)
 fn sbi_call(which: usize, arg0: usize, arg1: usize, arg2: usize) -> usize {
     let ret;
     unsafe {
-        asm!("ecall"
-            : "={x10}" (ret)
-            : "{x10}" (arg0), "{x11}" (arg1), "{x12}" (arg2), "{x17}" (which)
-            : "memory"
+        asm!("ecall"			//汇编代码——字符串形式
+            : "={x10}" (ret)	//返回值
+            : "{x10}" (arg0), "{x11}" (arg1), "{x12}" (arg2), "{x17}" (which)//输入参数
+            : "memory"//提示编译器可能更改内存
             : "volatile");
     }
     ret
+}
+```
+
+输出部分，我们将结果保存到变量 `ret` 中，限制条件 `{x10}` 告诉编译器使用寄存器 `x10`（即 `a0` 寄存器），前面的 `=` 表明汇编代码会修改该寄存器并作为最后的返回值。
+
+输入部分，我们分别通过寄存器 `x10`、`x11`、`x12` 和 `x17`（这四个寄存器又名 `a0`、`a1`、`a2` 和 `a7`） 传入参数 `arg0`、`arg1`、`arg2` 和 `which` ，其中前三个参数分别代表接口可能所需的三个输入参数，最后一个**`which`** 用来区分我们调用的是哪个接口（SBI Extension ID）。这里之所以提供三个输入参数是为了将所有接口囊括进去，对于某些接口有的输入参数是冗余的，比如 `sbi_console_putchar` 由于只需一个输入参数，它就只关心寄存器 `a0` 的值。
+
+```rust
+const SBI_SET_TIMER: usize = 0;
+const SBI_CONSOLE_PUTCHAR: usize = 1;
+const SBI_CONSOLE_GETCHAR: usize = 2;
+const SBI_CLEAR_IPI: usize = 3;
+const SBI_SEND_IPI: usize = 4;
+const SBI_REMOTE_FENCE_I: usize = 5;
+const SBI_REMOTE_SFENCE_VMA: usize = 6;
+const SBI_REMOTE_SFENCE_VMA_ASID: usize = 7;
+const SBI_SHUTDOWN: usize = 8;
+
+/// 向控制台输出一个字符
+///
+/// 需要注意我们不能直接使用 Rust 中的 char 类型
+pub fn console_putchar(c: usize) {
+    sbi_call(SBI_CONSOLE_PUTCHAR, c, 0, 0);
+}
+
+/// 从控制台中读取一个字符
+///
+/// 没有读取到字符则返回 -1
+pub fn console_getchar() -> usize {
+    sbi_call(SBI_CONSOLE_GETCHAR, 0, 0, 0)
+}
+
+/// 调用 SBI_SHUTDOWN 来关闭操作系统（直接退出 QEMU）
+pub fn shutdown() -> ! {
+    sbi_call(SBI_SHUTDOWN, 0, 0, 0);
+    unreachable!()
 }
 ```
 
