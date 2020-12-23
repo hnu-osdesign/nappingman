@@ -42,13 +42,14 @@ K210其他相关资料见docs文件夹
 
 1. 所有权的概念理解：所有权是用来处理内存回收问题的；
 
-	①在C/C++中内存管理需要显示编程，用户需要自己申请、释放内存，但是一般情况下即使没有及时释放内存也不会造成程序功能，这就造成了内存的浪费；
+   ①在C/C++中内存管理需要显示编程，用户需要自己申请、释放内存，但是一般情况下即使没有及时释放内存也不会造成程序功能，这就造成了内存的浪费；
 
-	②在Java中，程序在虚拟机JVM中运行，JVM具有自动回收内存的功能，但这样对程序运行时效率降低；
+   ②在Java中，程序在虚拟机JVM中运行，JVM具有自动回收内存的功能，但这样对程序运行时效率降低；
 
-	通过三条规则引入所有权：
+   通过三条规则引入所有权：
 
-	<img src="images/image-20201114231034678.png" alt="image" style="zoom: 67%;" />
+   <img src="images/image-20201114231034678.png" alt="image" style="zoom: 67%;" />
+
 2. 一般变量的作用范围就是所声明函数的范围，一旦超出，所有权将被收回；
 
 3. 对于基本类型的变量，变量的数据内容存在于栈中，而对于其他类型的（比如不定长的string），其实际数据内容存在于堆中，在栈里面只存储了一个指向堆的指针；
@@ -61,11 +62,12 @@ K210其他相关资料见docs文件夹
 
 7. 变量的引用&类似于指针
 
-	<img src="images/image-20201114232226843.png" alt="image" style="zoom: 67%;" /> 
+   <img src="images/image-20201114232226843.png" alt="image" style="zoom: 67%;" /> 
 
-	在内存中的表现是：在栈中存放s2变量的地方放一个指向（指向堆中存放s1地址的指针）； 
+   在内存中的表现是：在栈中存放s2变量的地方放一个指向（指向堆中存放s1地址的指针）； 
 
-	<img src="images/image-20201114232335767.png" alt="image" style="zoom: 50%;" /> 
+   <img src="images/image-20201114232335767.png" alt="image" style="zoom: 50%;" /> 
+
 8. 若引用的变量==在引用语句之后所有权被转移==，那么通过引用得到的变量会==失效==；
 
 9. 既然引用相当于一种“租借”来的所有权，那么试图对其数据进行修改的语句都是非法的；除非使用一种特殊的==引用类型——&mut==，使用&mut修饰表明可变的引用类型；这同时引出了另一个问题：在普通引用的时候，一个变量可以有多个引用；但对于可变引用，只能有一个，不允许有多个可变引用指向一个变量；即多个可变引用涉及到了同步问题，在rust中成为“数据访问碰撞”；
@@ -803,7 +805,6 @@ fn main(){
 当要返回一个闭包时，也就相当于返回一个匿名结构体，这个结构体的大小取决于闭包的参数、捕获的变量，所以是不确定的，不能直接return，需要用到`Box::new`装箱：
 
 ```rust
-
 fn closure_inside() -> Box<dyn FnMut() -> ()>
 {
     let mut age = 1;
@@ -838,3 +839,166 @@ fn main(){
 代码中的所有权转移，这里使用了关键字`move`，它可以在构建闭包时，强制以`by value`的方式，也就是把所有权都转移到闭包中。它可以在构建闭包时，强制将要捕获变量的所有权转移至闭包内部的特别存储区
 
 需要注意的是，使用`move`，并不影响闭包的`trait`，本例中可以看到闭包是`FnMut`，而不是`FnOnce`。因为必报的`trait`是由编译器通过闭包具体的行为而推断的，而与它以何种方式捕获变量无关。
+
+---
+
+```c
+/*------------------------------------------------------------
+--------------------5th meeting's record----------------------
+-------------------Theme: Rust语言的内联汇编-------------------
+-------------------@nappingman On 2020.12.23------------------
+------------------------------------------------------------*/
+```
+
+#### 内联汇编
+
+Rust的内联汇编基础语法如下(需要启用`#!(feature(asm))`)：
+
+```rust
+asm!(
+	assembly template 
+	: 输出操作数
+	: 输入操作数
+	: Clobber
+	: 选项
+);
+```
+
+##### assembly template
+
+`assembly template`是唯一需要的参数并且必须是原始字符串例如`asm!("nop")`,该指令不需要任何参数，因此省略了。
+
+在调用该函数时我们可以添加`#[cfg(target_arch = "x86_64")]`来指定要编译的目标系统的架构。
+
+```rust
+#![feature(asm)]
+
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+fn foo() {
+    unsafe {
+        asm!("NOP");
+    }
+}
+
+// Other platforms:
+#[cfg(not(any(target_arch = "x86", target_arch = "x86_64")))]
+fn foo() { /* ... */ }
+
+fn main() {
+    // ...
+    foo();
+    // ...
+}
+```
+
+因为Rust内联汇编还处于`Unstable`，因此我们需要使用`#![feature(asm)]`放在`lib.rs`文件对开头部分如下：
+
+```rust
+system/src/lib.rs
+#![no_std]
+#![feature(asm)]
+...
+```
+
+**但是现在由于版本原因，这样编译会报错，需要把上面涉及到的`asm!`全部替换成`llvm_asm!`。**
+
+使用时需要添加unsafe块或函数需要添加unsafe关键字，例如
+
+```rust
+fn main(){
+	unsafe{
+		nop();
+	}
+}
+```
+
+如果一个函数只有一个内联汇编操作的话，建议将该函数声明为unsafe的，为了提高执行效率可以在函数上添加`#[inline]`宏（与C语言的`#inline`宏类似）,这在编译时起到了优化的效果：
+
+```rust
+#[inline]
+pub unsafe fn xor(){
+	// 有空格也没关系
+	asm!("xor %eax, %eax" ::: "{eax}");
+}
+```
+
+##### 操作数
+
+输入和输出操作数都有相同的格式：`: "constraints1"(expr1), "constraints2"(expr2), ..."`。输出操作数表达式必须是可变的左值，或还未赋值的：
+
+```rust
+# #![feature(asm)]
+# #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+fn add(a: i32, b: i32) -> i32 {
+    let c: i32;
+    unsafe {
+        asm!("add $2, $0"
+             : "=r"(c)
+             : "0"(a), "r"(b)
+             );
+    }
+    c
+}
+# #[cfg(not(any(target_arch = "x86", target_arch = "x86_64")))]
+# fn add(a: i32, b: i32) -> i32 { a + b }
+
+fn main() {
+    assert_eq!(add(3, 14159), 14162)
+}
+```
+
+如果你想在这里使用真正的操作数，然而，要求你在你想使用的寄存器上套上大括号`{}`，并且要求你指明操作数的大小。这在非常底层的编程中是很有用的，这时你使用哪个寄存器是很重要的：
+
+```rust
+# #![feature(asm)]
+# #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+# unsafe fn read_byte_in(port: u16) -> u8 {
+let result: u8;
+asm!("in %dx, %al" : "={al}"(result) : "{dx}"(port));
+result
+# }
+```
+
+##### 覆盖（Clobbers）
+
+一些指令修改的寄存器可能保存有不同的值，所以我们使用覆盖列表来告诉编译器不要假设任何装载在这些寄存器的值是有效的。
+
+```rust
+# #![feature(asm)]
+# #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+# fn main() { unsafe {
+// Put the value 0x200 in eax:
+asm!("mov $$0x200, %eax" : /* no outputs */ : /* no inputs */ : "eax");
+# } }
+# #[cfg(not(any(target_arch = "x86", target_arch = "x86_64")))]
+# fn main() {}
+```
+
+输入和输出寄存器并不需要列出因为这些信息已经通过给出的限制沟通过了。因此，任何其它的被使用的寄存器应该隐式或显式的被列出。
+
+如果汇编修改了代码状态寄存器`cc`则需要在覆盖中被列出，如果汇编修改了内存，`memory`也应被指定。
+
+##### 选项（Options）
+
+最后一部分，`options`是 Rust 特有的。格式是逗号分隔的基本字符串（也就是说，`:"foo", "bar", "baz"`）。它被用来指定关于内联汇编的额外信息：
+
+目前有效的选项有：
+
+1. *volatile* - 相当于 gcc/clang 中的`__asm__ __volatile__ (...)`
+2. *alignstack* - 特定的指令需要栈按特定方式对齐（比如，SSE）并且指定这个告诉编译器插入通常的栈对齐代码
+3. *intel* - 使用 intel 语法而不是默认的 AT&T 语法
+
+```rust
+# #![feature(asm)]
+# #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+# fn main() {
+let result: i32;
+unsafe {
+   asm!("mov eax, 2" : "={eax}"(result) : : : "intel")
+}
+println!("eax is currently {}", result);
+# }
+# #[cfg(not(any(target_arch = "x86", target_arch = "x86_64")))]
+# fn main() {}
+```
+
