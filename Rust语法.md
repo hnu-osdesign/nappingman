@@ -855,14 +855,19 @@ fn main(){
 Rust的内联汇编基础语法如下(需要启用`#!(feature(asm))`)：
 
 ```rust
-asm!(
-	assembly template 
-	: 输出操作数
-	: 输入操作数
-	: Clobber
-	: 选项
+asm!(assembler template
+    : /* output operands */
+    : /* input operands */
+    : /* clobbered registers list */
+    : /* option */
 );
 ```
+
+- `assembler template` 给出字符串形式的汇编代码；
+- `output operands` 以及 `input operands` 分别表示输出和输入，体现着汇编代码与 Rust 代码的交互。每个输出和输入都是用 `"constraint"(expr)` 的形式给出的，其中 `expr` 部分是一个 Rust 表达式作为汇编代码的输入、输出，通常为了简单起见仅用一个变量。而 `constraint` 则是你用来告诉编译器如何进行参数传递；
+- `clobbered registers list` 需要给出你在整段汇编代码中，除了用来作为输入、输出的寄存器之外，还曾经显式/隐式的修改过哪些寄存器。由于编译器对于汇编指令所知有限，你必须手动告诉它“我可能会修改这个寄存器”，这样它在使用这个寄存器时就会更加小心；
+- `option` 是 Rust 语言内联汇编 **特有** 的(相对于 C 语言)，用来对内联汇编整体进行配置。
+- 如果想进一步了解上面例子中的内联汇编(**"asm!"**)，请参考[附录：内联汇编](https://rcore-os.github.io/rCore_tutorial_doc/appendix/inline_asm.html)。
 
 ##### assembly template
 
