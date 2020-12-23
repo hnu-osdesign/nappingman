@@ -4,7 +4,15 @@
 
 
 
-#### #First Attempt
+```c
+/*------------------------------------------------------------
+--------------------7th meeting's record----------------------
+-------------------Theme: blog-os on RISCV--------------------
+-------------------@nappingman On 2020.12.16------------------
+------------------------------------------------------------*/
+```
+
+#### 1
 
 参照`rcore`，实现把一个os编译得到riscv指令集架构下的一个可执行文件，并在qemu（和板子上）跑出来；
 
@@ -354,6 +362,29 @@ run: build qemu
 
 烧是能烧，，但是没啥反馈
 
-
-
 先得研究一下opensbi和u-boot
+
+---
+
+```c
+/*------------------------------------------------------------
+--------------------8th meeting's record----------------------
+-------------------Theme: blog-os on RISCV--------------------
+-------------------@nappingman On 2020.12.23------------------
+------------------------------------------------------------*/
+```
+
+#### 2
+
+##### OpenSBI提供的接口
+
+OpenSBI 实际上不仅起到了 bootloader 的作用，还为我们提供了一些服务供我们在编写内核时使用。这层接口称为 SBI (Supervisor Binary Interface)，是 S-Mode 的 kernel 和 M-Mode 执行环境之间的标准接口。
+
+我们查看 [OpenSBI 文档 # legacy sbi extension](https://github.com/riscv/riscv-sbi-doc/blob/master/riscv-sbi.adoc#legacy-sbi-extension-extension-ids-0x00-through-0x0f) ，里面包含了一些以 C 函数格式给出的我们可以调用的接口。
+
+上一节中我们的 `console_putchar` 函数类似于调用下面的接口来实现的：
+
+```c
+void sbi_console_putchar(int ch)
+```
+
